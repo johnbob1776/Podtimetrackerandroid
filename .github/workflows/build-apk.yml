@@ -1,4 +1,4 @@
-name: Build Pod Tracker APK
+name: Build Compact Pod Tracker APK
 on:
   push:
     branches: [main]
@@ -13,8 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Extract Android project
+        run: unzip -oq pod-tracker-source-full.zip -d .
+      - name: Compact the widget
         run: |
-          unzip -oq pod-tracker-source-full.zip -d .
+          sed -i 's/290dp/195dp/; s/targetCellHeight="4"/targetCellHeight="2"/; s/android:resizeMode=/android:minResizeHeight="195dp" android:resizeMode=/' app/src/main/res/xml/pod_widget_info.xml
+          sed -i 's/11dp/6dp/; s/34dp/22dp/; s/32dp/22dp/' app/src/main/res/layout/pod_widget.xml
+          sed -i 's/46dp/33dp/g; s/4dp/2dp/g; s/32dp/28dp/g; s/20sp/17sp/g' app/src/main/res/values/styles.xml
+          sed -i "s/versionCode 1/versionCode 2/; s/versionName '1.0'/versionName '1.1-compact'/" app/build.gradle
           python3 verify_project.py
       - uses: actions/setup-java@v4
         with:
@@ -32,6 +37,6 @@ jobs:
         run: gradle --no-daemon :app:assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: PodTimeTracker-APK
+          name: PodTimeTracker-Compact-APK
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
